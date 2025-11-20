@@ -25,8 +25,8 @@ video_player = vlcplayer
 # card for media files.  
 # You can change the directory to be used in the [directory] section below.  
 # The default is usb_drive.
-#file_reader = usb_drive
-file_reader = directory
+file_reader = usb_drive
+#file_reader = directory
 #file_reader = usb_drive_copymode
 
 # Note on usb_drive_copymode:
@@ -151,13 +151,8 @@ gpio_control_disabled_while_playback = false
 # USB drive file reader configuration follows.
 [usb_drive]
 
-# The path to mount new USB drives.  A number will be appended to the path for
-# each mounted drive (i.e. /mnt/usbdrive0, /mnt/usbdrive1, etc.).
-mount_path = /mnt/usbdrive
-
-# Whether to mount the USB drives as readonly (true) or writable (false). It is
-# recommended to mount USB drives readonly for reliability.
-readonly = true
+# The path to look for automatically mounted USB Drives i.e. /media/pi/.
+mount_path = /media/{USERNAME}/
 
 
 # Directory file reader configuration follows.

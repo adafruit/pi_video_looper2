@@ -546,7 +546,14 @@ class VideoLooper:
                                       # player to stop.
                 self._print("player stopped")
                 # Rebuild playlist and show countdown again (if OSD enabled).
-                self._playlist = self._build_playlist()
+
+                try:
+                    self._playlist = self._build_playlist()
+                except PermissionError:
+                    # wait a second for drive to be fully mounted and readable.
+                    time.sleep(1)
+                    self._playlist = self._build_playlist()
+
                 #refresh background image
                 if self._copyloader:
                     self._bgimage = self._load_bgimage()

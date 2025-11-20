@@ -1,41 +1,39 @@
-# Copyright 2015 Adafruit Industries.
-# Author: Tony DiCola
+# Copyright 2015, 2025 Adafruit Industries.
+# Author: Tony DiCola, Tim Cocks
 # License: GNU GPLv2, see LICENSE.txt
 import glob
-
-# from .usb_drive_mounter import USBDriveMounter
+import os
 
 
 class USBDriveReader:
 
     def __init__(self, config):
-        """Create an instance of a file reader that uses the USB drive mounter
-        service to keep track of attached USB drives and automatically mount
-        them for reading videos.
+        """Create an instance of a file reader that watches drives that have
+        been automatically mounted for reading videos.
         """
         self._load_config(config)
-        # self._mounter = USBDriveMounter(root=self._mount_path,
-        #                                 readonly=self._readonly)
-        # self._mounter.start_monitor()
+        self._mount_dir_state = os.listdir(self._mount_path)
 
 
     def _load_config(self, config):
         self._mount_path = config.get('usb_drive', 'mount_path')
-        self._readonly = config.getboolean('usb_drive', 'readonly')
+
 
     def search_paths(self):
         """Return a list of paths to search for files. Will return a list of all
         mounted USB drives.
         """
-        # self._mounter.mount_all()
         return glob.glob(self._mount_path + '*')
 
     def is_changed(self):
         """Return true if the file search paths have changed, like when a new
         USB drive is inserted.
         """
-        # return self._mounter.poll_changes()
-        return False
+        currrent_state = os.listdir(self._mount_path)
+        changed = currrent_state != self._mount_dir_state
+        self._mount_dir_state = currrent_state
+
+        return changed
 
     def idle_message(self):
         """Return a message to display when idle and no files are found."""

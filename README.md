@@ -13,7 +13,7 @@ If you miss a feature just post an issue here on Github. (https://github.com/ada
 ## Feature Warning
 Not all features from the original pi_video_looper have been implemented or tested yet.
 Current known working functionality is limited to basic directory playback and keyboard controls. 
-Looping, repeating, random playlists, GPIO, supervisor autostart, and USB functionality are not implemented.
+Looping, repeating, random playlists, GPIO, and usb_copymode are not implemented yet.
 
 ## Changelog
 #### new in v0.1.0
@@ -22,6 +22,8 @@ Looping, repeating, random playlists, GPIO, supervisor autostart, and USB functi
  - support for user other than pi
  - use systemd instead of supervisor
  - pyproject.toml instead of setup.py
+ - uninstall.sh script
+ - readonly drive mounted is not supported. Drive mounting is handled automatically by the OS.
 
 ## How to install
 ```shell
