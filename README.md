@@ -6,9 +6,9 @@ This version uses VLC as the sole supported video playback engine. omxplayer and
 An application to turn your Raspberry Pi 5 into a dedicated looping video playback device.
 Can be used in art installations, fairs, theatre, events, infoscreens, advertisements etc...
 
-Works right out of the box, but also has a lot of customisation options to make it fit your use case. See the [video_looper.ini](https://github.com/adafruit/pi_video_looper/blob/master/assets/video_looper.ini) configuration file for an overview of options. 
+Works right out of the box, but also has a lot of customisation options to make it fit your use case. See the [video_looper.ini](https://github.com/adafruit/pi_video_looper2/blob/main/assets/video_looper.ini.template) configuration file for an overview of options. 
 
-If you miss a feature just post an issue here on Github. (https://github.com/adafruit/pi_video_looper)
+If you miss a feature just post an issue here on Github. (https://github.com/adafruit/pi_video_looper2)
 
 ## Feature Warning
 Not all features from the original pi_video_looper have been implemented or tested yet.
@@ -16,31 +16,40 @@ Current known working functionality is limited to basic directory playback and k
 Looping, repeating, random playlists, GPIO, supervisor autostart, and USB functionality are not implemented.
 
 ## Changelog
-#### new in v0.0.1
+#### new in v0.1.0
  - Forked from original pi_video_looper
  - vlcplayer added
 
 ## How to install
-`sudo apt-get install git`  
-`cd ~`  
-`git clone https://github.com/adafruit/pi_video_looper2`  
-`cd pi_video_looper2`  
-`sudo ./install.sh`
+```shell
+sudo apt-get install git
+cd ~
+git clone https://github.com/adafruit/pi_video_looper2  
+cd pi_video_looper2
+sudo ./install.sh
+```
+
+By default, the install.sh script assumes use of 'pi' user. To specify a different user pass the --user argument.
+```shell
+sudo ./install.sh --user myusername
+```
 
 Default player is vlcplayer.
 
 ## How to update
-An update is always like a fresh installation so you will loose custom changes made to the /boot/video_looper.ini   
+An update is always like a fresh installation so you will lose custom changes made to the /boot/video_looper.ini   
 
 For backing up the current ini:     
 `sudo cp /boot/video_looper.ini /boot/video_looper.ini_backup`  
 
-For the update:    
-`cd ~`   
-`sudo rm -rf pi_video_loope2r`   
-`git clone https://github.com/adafruit/pi_video_looper2`    
-`cd pi_video_looper`   
-`sudo ./install.sh` 
+For the update:
+```shell
+cd ~
+sudo rm -rf pi_video_looper2
+git clone https://github.com/adafruit/pi_video_looper2    
+cd pi_video_looper2 
+sudo ./install.sh 
+```
 
 ## Features and settings
 To change the settings of the video looper (e.g. random playback, copy mode, GPIO control, advanced features) edit the `/boot/video_looper.ini` file, i.e. by quitting the player with 'ESC' and logging in to the Raspberry with an attached keyboard, or remotely via ssh. Then edit the configuration file with `sudo nano /boot/video_looper.ini`.
@@ -72,15 +81,13 @@ The video looper can be controlled via keyboard input or via configured GPIO pin
 Keyboard control is enabled by default via the `keyboard_control` setting in the video_looper.ini file. 
 
 #### keyboard commands:
-The following keyboard commands are active by default (can be disabled in the [video_looper.ini](https://github.com/adafruit/pi_video_looper/blob/master/assets/video_looper.ini)):
+The following keyboard commands are active by default (can be disabled in the [video_looper.ini](https://github.com/adafruit/pi_video_looper2/blob/main/assets/video_looper.ini.template)):
 * "ESC" - stops playback and exits video_looper
 * "k" - sKip - stops the playback of current file and plays next file
 * "b" - Back - stops the playback of current file and plays previous file
 * "s" - Stop/Start - stops or starts playback of current file
 * "p" - Power off - stop playback and shutdown RPi
-* " " - (space bar) - Pause/Resume the omxplayer and imageplayer
-* "o" - next chapter (only omxplayer)
-* "i" - previous chapter (only omxplayer)
+* " " - (space bar) - Pause/Resume the player
 
 #### GPIO control:
 To enable GPIO control you need to set a GPIO pin mapping via the `gpio_pin_map` in the `control` section of the video_looper.ini. 
@@ -110,5 +117,4 @@ Note 2: "keyboard_control" needs to be enabled in the ini for gpio to utilise ke
 ## Troubleshooting:
 * nothing happening (screen flashes once) when in copymode and new drive is plugged in?
     * check if you have the "password file" on your drive (see copymode explained above)
-* log output can be found in `/var/log/supervisor/`. Enable detailed logging in the video_looper.ini with console_output = true.  
-  Use `sudo tail -f /var/log/supervisor/video_looper-stdout*` and `sudo tail -f /var/log/supervisor/video_looper-stderr*` to view the logs.
+* log output can be displayed with `journalctl -fu video_looper`. Enable detailed logging in the video_looper.ini with console_output = true.
