@@ -44,4 +44,6 @@ systemctl disable video_looper
 rm /etc/systemd/system/video_looper.service
 rm /boot/video_looper.ini
 
+systemctl daemon-reload
+
 echo "Uninstalling pi_video_looper2 complete"

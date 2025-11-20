@@ -221,7 +221,8 @@ hw_vol_file =
 # device) to list available controls.
 hw_vol_control = PCM
 
-
+[vlcplayer]
+extensions = avi, mov, mkv, mp4, m4v
 
 # image player configuration follows
 [image_player]

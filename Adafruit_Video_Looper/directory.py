@@ -11,6 +11,8 @@ class DirectoryReader:
         """
         self._load_config(config)
         self._filecount = self.count_files()
+        if not os.path.exists(self._path):
+            os.makedirs(self._path)
 
     def _load_config(self, config):
         self._path = config.get('directory', 'path')

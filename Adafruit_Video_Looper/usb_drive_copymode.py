@@ -7,8 +7,6 @@ import shutil
 import re
 import pygame
 import time
-from .usb_drive_mounter import USBDriveMounter
-
 
 class USBDriveReaderCopy(object):
 
@@ -21,13 +19,11 @@ class USBDriveReaderCopy(object):
         self._screen = screen
         self._load_config(config)
         self._pygame_init(config)
-        self._mounter = USBDriveMounter(root=self._mount_path,
-                                        readonly=self._readonly)
-        self._mounter.start_monitor()
 
         if not os.path.exists(self._target_path):
             os.makedirs(self._target_path)
-        #subprocess.call(['mkdir', self._target_path])
+
+        self._mount_dir_state = os.listdir(self._mount_path)
 
     def _pygame_init(self, config):
         self._bgcolor = (52,52,52)
@@ -49,10 +45,8 @@ class USBDriveReaderCopy(object):
                                          self.pwidth,
                                          self.pheight)
 
-
     def _load_config(self, config):
         self._mount_path = config.get('usb_drive', 'mount_path')
-        self._readonly = config.getboolean('usb_drive', 'readonly')
         self._target_path = config.get('directory', 'path')
         self._copy_mode = config.get('copymode', 'mode')
         self._copyloader = config.getboolean('copymode', 'copyloader')
@@ -74,6 +68,7 @@ class USBDriveReaderCopy(object):
             #check password
             if not self._password == "":
                 if not self.check_file_exists('{0}/{1}'.format(path.rstrip('/'), self._password)):
+                    print(f"Skipping {path}, no password file found")
                     continue
 
             #override copymode?
@@ -210,9 +205,7 @@ class USBDriveReaderCopy(object):
         """Return a list of paths to search for files. Will return a list of all
         mounted USB drives.
         """
-        if(self._mounter.has_nodes()):
-            self._mounter.mount_all()
-            self._copy_files(glob.glob(self._mount_path + '*'))
+        self._copy_files(glob.glob(self._mount_path + '*'))
 
         return [self._target_path]
 
@@ -220,10 +213,11 @@ class USBDriveReaderCopy(object):
         """Return true if the file search paths have changed, like when a new
         USB drive is inserted.
         """
-        if self._mounter.poll_changes() and self._mounter.has_nodes():
-            return True
-        else:
-            return False
+        currrent_state = os.listdir(self._mount_path)
+        changed = currrent_state != self._mount_dir_state
+        self._mount_dir_state = currrent_state
+
+        return changed
 
     def idle_message(self):
         """Return a message to display when idle and no files are found."""
