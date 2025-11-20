@@ -22,7 +22,7 @@ class VLCPlayer:
         self._temp_directory = None
         self._vlc_instance = vlc.Instance()
         self._video_player = self._vlc_instance.media_player_new()
-        self._video_directory = "/home/timc/Videos/"
+        self._video_directory = config.get("directory", "path")
 
         self._load_config(config)
 
