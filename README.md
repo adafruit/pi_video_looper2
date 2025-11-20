@@ -19,6 +19,9 @@ Looping, repeating, random playlists, GPIO, supervisor autostart, and USB functi
 #### new in v0.1.0
  - Forked from original pi_video_looper
  - vlcplayer added
+ - support for user other than pi
+ - use systemd instead of supervisor
+ - pyproject.toml instead of setup.py
 
 ## How to install
 ```shell
