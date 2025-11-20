@@ -11,16 +11,10 @@
 # Video_looper configuration block follows.
 [video_looper]
 
-# Set which video player will be used to play media files.  Can be either omxplayer,
-# hello_video or image_player. omxplayer can play common formats like avi, mov, mp4, etc. and
-# with full audio and video, but it has a small ~100ms delay between videos.
-# If there is only one video omxplayer can also loop seamlessly.
-# hello_video is a simpler player that doesn't do audio and only plays raw H264
-# streams, but loops videos seamlessly if one video is played more than once.
+# Set which video player will be used to play media files.  Only vlcplayer is supported at this time.
 # The image_player only displays images and for the duration configured in this file under the "image_player" section.
-# The default is omxplayer.
-video_player = omxplayer
-#video_player = hello_video
+# The default is vlcplayer.
+video_player = vlcplayer
 #video_player = image_player
 
 # File Reader Location
@@ -31,8 +25,8 @@ video_player = omxplayer
 # card for media files.  
 # You can change the directory to be used in the [directory] section below.  
 # The default is usb_drive.
-file_reader = usb_drive
-#file_reader = directory
+#file_reader = usb_drive
+file_reader = directory
 #file_reader = usb_drive_copymode
 
 # Note on usb_drive_copymode:
@@ -170,7 +164,7 @@ readonly = true
 [directory]
 # The path to search for movies when using the directory file reader.
 # (see the file_reader section above to enable it)
-path = /home/pi/video
+path = /home/{USERNAME}/Videos
 
 
 # Copy-mode file reader configuration follows.
@@ -208,8 +202,6 @@ path =
 
 
 
-
-
 # ALSA configuration follows.
 # This only applies when using omxplayer with sound = alsa.
 [alsa]
@@ -234,60 +226,6 @@ hw_vol_file =
 # device) to list available controls.
 hw_vol_control = PCM
 
-
-# omxplayer configuration follows.
-[omxplayer]
-
-# List of supported file extensions.  Must be comma separated and should not
-# include the dot at the start of the extension.
-extensions = avi, mov, mkv, mp4, m4v
-
-# Sound output for omxplayer, either hdmi, local, both or alsa.  When set to
-# hdmi the video sound will be played on the HDMI output, and when set to local
-# the sound will be played on the analog audio output.  A value of both will
-# play sound on both HDMI and the analog output.  A value of alsa will play
-# sound through ALSA, using the device specified in the [alsa] section above.
-# The both value is the default.
-sound = both
-#sound = hdmi
-#sound = local
-#sound = alsa
-
-# Specify a sound volume output for the video player. 
-# The volume will be read from a file near the
-# video files. If the file does not exist, a default volume of 0db will be used.
-# To use this feature create a file in the same directory as the videos and name
-# it the value defined below (like 'sound_volume' by default), then inside the
-# file add a single line with the volume value in text to pass to omxplayer (using
-# its --vol option which takes a value in millibels).
-# NOTE: This may introduce audible quantization error. Using hw_vol_file will
-# generally give better sound quality.
-sound_vol_file = sound_volume
-
-# Fixed playlists may embed titles, which can be shown. See playlist section above.
-# If no fixed playlist is given, titles are simply filenames without extensions.
-show_titles = false
-#show_titles = true
-
-# Title duration in seconds. -1 means endless.
-title_duration = 10
-
-# Any extra command line arguments to pass to omxplayer.  It is not recommended
-# that you change this unless you have a specific need to do so!  The audio and
-# video FIFO buffers are kept low to reduce clipping ends of movie at loop.
-# Run 'omxplayer -h' to have the full list of parameters or see
-# https://github.com/popcornmix/omxplayer#synopsis for all available options
-# on Raspberry Pi 4 and 5 you can choose the HDMI output with --display 7 or --display 2
-# without specifing --display both hdmi ports have the same output
-extra_args = --no-osd --audio_fifo 0.01 --video_fifo 0.01 --align center --font-size 55
-
-
-# hello_video player configuration follows.
-[hello_video]
-
-# List of supported file extensions.  Must be comma separated and should not
-# include the dot at the start of the extension.
-extensions = h264
 
 
 # image player configuration follows

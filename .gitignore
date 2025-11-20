@@ -1,4 +1,8 @@
-omxplayer-dist.tgz*
+
+# filled in templates
+assets/video_looper.ini
+assets/video_looper.service
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

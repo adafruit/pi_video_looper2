@@ -98,8 +98,7 @@ class VideoLooper:
         self._alsa_hw_vol_file = self._config.get('alsa', 'hw_vol_file')
         # default ALSA hardware volume (volume will not be changed)
         self._alsa_hw_vol = None
-        # Load sound volume file name value
-        self._sound_vol_file = self._config.get('omxplayer', 'sound_vol_file')
+
         # default value to 0 millibels (omxplayer)
         self._sound_vol = 0
         # Set other static internal state.
@@ -260,15 +259,7 @@ class VideoLooper:
                     with open(alsa_hw_vol_file_path, 'r') as alsa_hw_vol_file:
                         alsa_hw_vol_string = alsa_hw_vol_file.readline()
                         self._alsa_hw_vol = alsa_hw_vol_string
-                    
-            # Get the video volume from the file in the usb key
-            if self._sound_vol_file:
-                sound_vol_file_path = '{0}/{1}'.format(path.rstrip('/'), self._sound_vol_file)
-                if os.path.exists(sound_vol_file_path):
-                    with open(sound_vol_file_path, 'r') as sound_file:
-                        sound_vol_string = sound_file.readline()
-                        if self._is_number(sound_vol_string):
-                            self._sound_vol = int(float(sound_vol_string))
+
         # Create a playlist with the sorted list of movies.
         return Playlist(sorted(movies))
 

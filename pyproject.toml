@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=62.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Adafruit_Video_Looper2"
+version = "0.1.0"
+description = "Application to turn your Raspberry Pi into a dedicated looping video playback device, good for art installations, information displays, or just playing cat videos all day."
+authors = [
+    {name = "Tony DiCola", email = "tdicola@adafruit.com"},
+    { name="Tobias Perschon", email="tobias@perschon.at" },
+    {name = "Tim Cocks", email = "tim.cocks@adafruit.com"}
+]
+license = {text = "GNU GPLv2"}
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: Unix",
+]
+dependencies = [
+    "pygame",
+    "python-vlc"
+]
+
+[project.urls]
+Homepage = "https://github.com/adafruit/pi_video_looper"
+
+[tool.setuptools]
+packages = ["Adafruit_Video_Looper"]

@@ -1,0 +1,16 @@
+# systemd configuration to run video looper at boot and
+# ensure it runs continuously.
+
+[Unit]
+Description=Adafruit Raspberry Pi Video Looper 2
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/{USERNAME}/venvs/pi_video_looper2_venv/bin/python -u -m Adafruit_Video_Looper.video_looper
+Restart=always
+RestartSec=3
+User={USERNAME}
+
+[Install]
+WantedBy=multi-user.target
