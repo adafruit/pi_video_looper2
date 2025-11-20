@@ -57,6 +57,7 @@ pip install --upgrade adafruit-python-shell
 wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
 sed -i '/shell.prompt_reboot()/d' raspi-blinka.py
 /home/$USERNAME/venvs/pi_video_looper2_venv/bin/python raspi-blinka.py
+rm raspi-blinka.py
 
 echo "Installing pi_video_looper2 program..."
 echo "=================================="
