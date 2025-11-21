@@ -20,7 +20,9 @@ classifiers = [
 ]
 dependencies = [
     "pygame",
-    "python-vlc"
+    "python-vlc",
+    "adafruit-circuitpython-debouncer",
+    "adafruit-blinka"
 ]
 
 [project.urls]

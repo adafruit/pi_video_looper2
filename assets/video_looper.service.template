@@ -7,6 +7,7 @@ After=network.target
 
 [Service]
 Type=simple
+WorkingDirectory=/home/{USERNAME}/pi_video_looper2
 ExecStart=/home/{USERNAME}/venvs/pi_video_looper2_venv/bin/python -u -m Adafruit_Video_Looper.video_looper
 Restart=always
 RestartSec=3
