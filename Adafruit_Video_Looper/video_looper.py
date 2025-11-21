@@ -264,7 +264,7 @@ class VideoLooper:
                 if os.path.exists(alsa_hw_vol_file_path):
                     with open(alsa_hw_vol_file_path, 'r') as alsa_hw_vol_file:
                         alsa_hw_vol_string = alsa_hw_vol_file.readline()
-                        self._alsa_hw_vol = alsa_hw_vol_string
+                        self._alsa_hw_vol = alsa_hw_vol_string.replace("\n", "")
 
         # Create a playlist with the sorted list of movies.
         return Playlist(sorted(movies))
@@ -419,10 +419,10 @@ class VideoLooper:
                 self._alsa_hw_vol_control,
                 self._alsa_hw_vol
             ))
-            cmd = ['amixer', '-M']
+            cmd = ['amixer']
             if self._alsa_hw_device != None:
                 cmd.extend(('-c', str(self._alsa_hw_device[0])))
-            cmd.extend(('set', self._alsa_hw_vol_control, '--', self._alsa_hw_vol))
+            cmd.extend(('sset', self._alsa_hw_vol_control, self._alsa_hw_vol))
             subprocess.check_call(cmd)
             
     def _handle_keyboard_shortcuts(self):

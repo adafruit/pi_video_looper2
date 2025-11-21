@@ -198,7 +198,6 @@ path =
 
 
 # ALSA configuration follows.
-# This only applies when using omxplayer with sound = alsa.
 [alsa]
 
 # ALSA hardware device to use for sound output.  This consists of the card
@@ -216,10 +215,10 @@ hw_device =
 hw_vol_file =
 #hw_vol_file = alsa_volume
 
-# Name of the ALSA control to use for adjusting volume.  Typically this will be
+# Name of the ALSA control to use for adjusting volume.  If 'Master' doesn't work, try
 # 'PCM'.  Run 'amixer -c N scontrols' (where N is the card number of your output
 # device) to list available controls.
-hw_vol_control = PCM
+hw_vol_control = Master
 
 [vlcplayer]
 extensions = avi, mov, mkv, mp4, m4v
