@@ -49,7 +49,6 @@ class VLCPlayer:
         return self._extensions
 
     def play(self, movie, loop=None, vol=0):
-        print(f"play called on {movie} - {movie.filename} - target: {movie.target}")
         """Play the provided movie file, optionally looping it repeatedly."""
         media = self._vlc_instance.media_new(movie.target)
         self._video_player.set_media(media)

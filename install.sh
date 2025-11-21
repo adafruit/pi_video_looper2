@@ -42,14 +42,19 @@ apt update && apt -y install python3 python3-pip
 
 echo "Making virtualenv ..."
 echo "=========================="
-python -m venv /home/$USERNAME/venvs/pi_video_looper2_venv
+python -m venv /home/$USERNAME/venvs/pi_video_looper2_venv --system-site-packages
 chown -R $USERNAME:$USERNAME /home/$USERNAME/venvs/pi_video_looper2_venv
-
-
-echo "Installing python dependencies..."
-echo "=========================="
 source /home/$USERNAME/venvs/pi_video_looper2_venv/bin/activate
 
+echo "Installing Adafruit_Blinka..."
+echo "=========================="
+
+pip install --upgrade adafruit-python-shell
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
+sed -i '/shell.prompt_reboot()/d' raspi-blinka.py
+/home/$USERNAME/venvs/pi_video_looper2_venv/bin/python raspi-blinka.py
+rm raspi-blinka.py
+rm -r lg/
 
 echo "Installing pi_video_looper2 program..."
 echo "=================================="

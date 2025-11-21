@@ -3,6 +3,9 @@
 assets/video_looper.ini
 assets/video_looper.service
 
+# blinka install script
+raspi-blinka.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

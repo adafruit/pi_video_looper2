@@ -10,10 +10,16 @@ import subprocess
 import sys
 import signal
 import time
+
+import board
+import digitalio
 import pygame
 import json
 import threading
 from datetime import datetime
+
+from adafruit_debouncer import Debouncer
+
 # import RPi.GPIO as GPIO
 
 from .alsa_config import parse_hw_device
@@ -458,35 +464,44 @@ class VideoLooper:
                     self._player.stop(3)
                     self._playbackStopped = False
     
-    def _handle_gpio_control(self, pin):
+    def _handle_gpio_control(self):
         if self._pinMap == None:
             return
-        
+
         if self._gpio_control_disabled_while_playback and self._player.is_playing():
             self._print(f'gpio control disabled while playback is running')
             return
-        
-        action = self._pinMap[str(pin)]
 
-        self._print(f'pin {pin} triggered: {action}')
+        for pin_name in self._pinMap.keys():
+            self._pinMap[pin_name]["debouncer"].update()
+            if self._pinMap[pin_name]["debouncer"].fell:
+                action = self._pinMap[pin_name]["action"]
+                self._print(f'pin {pin_name} triggered: {action}')
         
-        if action in ['K_ESCAPE', 'K_k', 'K_s', 'K_SPACE', 'K_p', 'K_b', 'K_o', 'K_i']:
-            pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=getattr(pygame, action, None)))
-        else:
-            self._playlist.set_next(action)
-            self._player.stop(3)
-            self._playbackStopped = False
+                if action in ['K_ESCAPE', 'K_k', 'K_s', 'K_SPACE', 'K_p', 'K_b', 'K_o', 'K_i']:
+                    pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=getattr(pygame, action, None)))
+                else:
+                    self._playlist.set_next(action)
+                    self._player.stop(3)
+                    self._playbackStopped = False
     
     def _gpio_setup(self):
-        # if self._pinMap == None:
-        #     return
-        # GPIO.setmode(GPIO.BOARD)
-        # for pin in self._pinMap:
-        #     GPIO.setup(int(pin), GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        #     GPIO.add_event_detect(int(pin), GPIO.FALLING, callback=self._handle_gpio_control,  bouncetime=200)
-        #     self._print("pin {} action set to: {}".format(pin, self._pinMap[pin]))
-        pass
-        
+        if self._pinMap is None:
+            return
+
+        for pin_name in self._pinMap.keys():
+            pin_obj = getattr(board, pin_name)
+            dio_obj = digitalio.DigitalInOut(pin_obj)
+            dio_obj.direction = digitalio.Direction.INPUT
+            dio_obj.pull = digitalio.Pull.UP
+
+            debounced_pin = Debouncer(dio_obj)
+            pin_map_entry = {
+                "action": self._pinMap[pin_name],
+                "debouncer": debounced_pin
+            }
+            self._pinMap[pin_name] = pin_map_entry
+        self._print(f"pinmap: {self._pinMap}")
     def run(self):
         """Main program loop.  Will never return!"""
         # Get playlist of movies to play from file reader.
@@ -561,6 +576,9 @@ class VideoLooper:
                 self._set_hardware_volume()
                 movie = self._playlist.get_next(self._is_random, self._resume_playlist)
 
+            # process GPIO inputs
+            self._handle_gpio_control()
+            
             # Give the CPU some time to do other tasks. low values increase "responsiveness to changes" and reduce the pause between files
             # but increase CPU usage
             # since keyboard commands are handled in a seperate thread this sleeptime mostly influences the pause between files
