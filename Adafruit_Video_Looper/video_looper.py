@@ -528,6 +528,8 @@ class VideoLooper:
                         if(self._datetime_display):
                             self._display_datetime()
                         else:
+                            self._player.stop()
+                            pygame.display.flip()
                             self._print('Waiting for: {0} seconds'.format(self._wait_time))
                             time.sleep(self._wait_time)
                     self._firstStart = False
@@ -552,6 +554,7 @@ class VideoLooper:
                     self._print('Playing movie: {0} {1}'.format(movie, infotext))
                     # todo: maybe clear screen to black so that background (image/color) is not visible for videos with a resolution that is < screen resolution
                     self._player.play(movie, loop=player_loop, vol = self._sound_vol)
+
 
             # Check for changes in the file search path (like USB drives added)
             # and rebuild the playlist.
