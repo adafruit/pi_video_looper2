@@ -555,6 +555,9 @@ class VideoLooper:
                     # todo: maybe clear screen to black so that background (image/color) is not visible for videos with a resolution that is < screen resolution
                     self._player.play(movie, loop=player_loop, vol = self._sound_vol)
 
+            # hide the video if it is not playing like after one_shot_playback
+            if not self._player.is_playing() and self._playbackStopped:
+                pygame.display.flip()
 
             # Check for changes in the file search path (like USB drives added)
             # and rebuild the playlist.
