@@ -6,7 +6,7 @@ Description=Adafruit Raspberry Pi Video Looper 2
 After=network.target
 
 [Service]
-Type=simple
+Type=idle
 WorkingDirectory=/home/{USERNAME}/pi_video_looper2
 ExecStart=/home/{USERNAME}/venvs/pi_video_looper2_venv/bin/python -u -m Adafruit_Video_Looper.video_looper
 Restart=always
