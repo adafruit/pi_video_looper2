@@ -54,7 +54,7 @@ wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/m
 sed -i '/shell.prompt_reboot()/d' raspi-blinka.py
 /home/$USERNAME/venvs/pi_video_looper2_venv/bin/python raspi-blinka.py
 rm raspi-blinka.py
-rm -r lg/
+rm -rf -- lg/
 
 echo "Installing pi_video_looper2 program..."
 echo "=================================="

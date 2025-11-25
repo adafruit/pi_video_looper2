@@ -1,9 +1,9 @@
 # pi_video_looper2
-This is a forked & updated version of the original project [pi_video_looper](https://github.com/adafruit/pi_video_looper). It aims to support Raspberry Pi 5 and the latest Raspberry Pi OS.
+This is a forked & updated version of the original project [pi_video_looper](https://github.com/adafruit/pi_video_looper). It aims to support Raspberry Pi 4 & 5 and the latest Raspberry Pi OS.
 
 This version uses VLC as the sole supported video playback engine. omxplayer and hello_video are not supported.
 
-An application to turn your Raspberry Pi 5 into a dedicated looping video playback device.
+An application to turn your Raspberry Pi 4 or 5 into a dedicated looping video playback device.
 Can be used in art installations, fairs, theatre, events, infoscreens, advertisements etc...
 
 Works right out of the box, but also has a lot of customisation options to make it fit your use case. See the [video_looper.ini](https://github.com/adafruit/pi_video_looper2/blob/main/assets/video_looper.ini.template) configuration file for an overview of options. 
@@ -11,9 +11,8 @@ Works right out of the box, but also has a lot of customisation options to make 
 If you miss a feature just post an issue here on Github. (https://github.com/adafruit/pi_video_looper2)
 
 ## Feature Warning
-Not all features from the original pi_video_looper have been implemented or tested yet.
-Current known working functionality is limited to basic directory playback and keyboard controls. 
-Looping, repeating, random playlists, GPIO, and usb_copymode are not implemented yet.
+The datetime display showing between videos during wait_time is not functioning properly in this version.
+All other features from the original pi_video_looper are believed to be tested and working, please file an issue if you find something that isn't.
 
 ## Changelog
 #### new in v0.1.0
@@ -40,6 +39,16 @@ sudo ./install.sh --user myusername
 ```
 
 Default player is vlcplayer.
+
+### Disable USB Auto-mount dialog.
+By default the Raspberry Pi OS file manager displays a pop-up dialog with options for what to do with the files found
+on USB drives that have been inserted. This can overtake and minimize the pi_video_looper program. To disable the
+dialog pop-up:
+
+- Open the File Manager
+- Click Edit -> Preferences
+- Click Volume Management in the left navigation
+- Uncheck the "Show available options for removable media when they are inserted"
 
 ## How to update
 An update is always like a fresh installation so you will lose custom changes made to the /boot/video_looper.ini   

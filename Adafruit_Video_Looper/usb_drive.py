@@ -12,7 +12,10 @@ class USBDriveReader:
         been automatically mounted for reading videos.
         """
         self._load_config(config)
-        self._mount_dir_state = os.listdir(self._mount_path)
+        try:
+            self._mount_dir_state = os.listdir(self._mount_path)
+        except FileNotFoundError:
+            self._mount_dir_state = []
 
 
     def _load_config(self, config):
@@ -29,11 +32,14 @@ class USBDriveReader:
         """Return true if the file search paths have changed, like when a new
         USB drive is inserted.
         """
-        currrent_state = os.listdir(self._mount_path)
-        changed = currrent_state != self._mount_dir_state
-        self._mount_dir_state = currrent_state
+        try:
+            currrent_state = os.listdir(self._mount_path)
+            changed = currrent_state != self._mount_dir_state
+            self._mount_dir_state = currrent_state
 
-        return changed
+            return changed
+        except FileNotFoundError:
+            return False
 
     def idle_message(self):
         """Return a message to display when idle and no files are found."""
