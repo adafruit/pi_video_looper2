@@ -10,11 +10,37 @@ Works right out of the box, but also has a lot of customisation options to make 
 
 If you miss a feature just post an issue here on Github. (https://github.com/adafruit/pi_video_looper2)
 
+## About this fork
+This fork adds two features to Video Looper 2, aimed at motion-triggered installations
+(Halloween props, haunted houses, museum exhibits):
+
+* **`gpio_pin_mode`** – trigger polarity for mapped GPIO pins. Upstream always uses a pull-up and
+  triggers when the pin is pulled to Ground. With `gpio_pin_mode = false` the pins use a pull-down
+  and trigger when they go to 3.3V, so **active-high sensors such as the HC-SR501 PIR can be wired
+  directly**, without a transistor inverter.
+* **Relay output** – switches a relay together with GPIO triggers, e.g. a fog machine or humidifier.
+  `relay_mode = timer` keeps it ON for a fixed time after each trigger; `relay_mode = follow` keeps it
+  ON while the sensor detects people and turns it OFF a few seconds after they leave, with a
+  safety limit.
+
+All new settings default to upstream behaviour, so existing configurations are unaffected.
+See [GPIO sensors and relay output](#gpio-sensors-and-relay-output-fork) below.
+
+To install the fork instead of upstream, clone this repository in the install step:
+```shell
+git clone https://github.com/<your-github-user>/pi_video_looper2
+```
+
 ## Feature Warning
 The datetime display showing between videos during wait_time is not functioning properly in this version.
 All other features from the original pi_video_looper are believed to be tested and working, please file an issue if you find something that isn't.
 
 ## Changelog
+#### fork additions
+ - `gpio_pin_mode` option for active-high GPIO triggers (e.g. HC-SR501 PIR)
+ - optional relay output (`relay_pin`, `relay_active_low`, `relay_mode`, `relay_seconds`, `relay_max_seconds`)
+ - documentation: `gpio_pin_map` uses Blinka pin names (`"D17"`), not BOARD numbers
+
 #### new in v0.1.0
  - Forked from original pi_video_looper
  - vlcplayer added
@@ -105,27 +131,78 @@ The following keyboard commands are active by default (can be disabled in the [v
 
 #### GPIO control:
 To enable GPIO control you need to set a GPIO pin mapping via the `gpio_pin_map` in the `control` section of the video_looper.ini. 
-Pins numbers are in "BOARD" numbering - see: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio. Bridge a mapped pin with a Ground pin to trigger it.
+Pins use Blinka board names: the BCM GPIO number with a `D` prefix, e.g. `"D17"` is GPIO17 on physical pin 11 - see: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio. With the default `gpio_pin_mode = true`, bridge a mapped pin with a Ground pin to trigger it.
 
-The pin mapping has the form: "pinnumber" : "action”. The action can be one of the following:
+The pin mapping has the form: "pinname" : "action". The action can be one of the following:
 * a filename as a string to play 
 * an absolute index number (starting with 0) 
 * a string in the form of `+n` or `-n` (with n being an integer) for a relative jump
 * a keyboard command (see above) in the form of a pygame key constant (see list: https://www.pygame.org/docs/ref/key.html)
 
 Here are some examples that can be set: 
-* `"11" : 1`  -> pin 11 will start the second file in the playlist
-* `"13" : "4"` -> pin 13 starts the 5th video
-* `"16" : "+2"` -> pin 16 jumps 2 videos ahead
-* `"18" : "-1"` -> pin 18 jumps one video back
-* `"15" : "video.mp4"` -> pin 15 plays a file with name "video.mp4" (if it exists)
-* `"19" : "K_SPACE"` -> pin 19 sends the "space" keyboard command, pausing the current video
-* `"21" : "K_p"` -> pin 21 sends "p" keyboard command and thus triggers the shutdown of the Raspberry Pi
+* `"D17" : 1`  -> GPIO17 (pin 11) will start the second file in the playlist
+* `"D27" : 4` -> GPIO27 (pin 13) starts the 5th video
+* `"D23" : "+2"` -> GPIO23 (pin 16) jumps 2 videos ahead
+* `"D24" : "-1"` -> GPIO24 (pin 18) jumps one video back
+* `"D22" : "video.mp4"` -> GPIO22 (pin 15) plays a file with name "video.mp4" (if it exists)
+* `"D10" : "K_SPACE"` -> GPIO10 (pin 19) sends the "space" keyboard command, pausing the current video
+* `"D9" : "K_p"` -> GPIO9 (pin 21) sends "p" keyboard command and thus triggers the shutdown of the Raspberry Pi
 
 For your convenience, these exact mappings can be easily enabled by uncommenting the example line in the video_looper.ini. You can also define your own mappings.
 
 Note: to be used as an absolute index the action needs to be an integer not a string.
 Note 2: "keyboard_control" needs to be enabled in the ini for gpio to utilise keyboard commands.
+
+#### GPIO sensors and relay output (fork)
+**Active-high sensors.** Set `gpio_pin_mode = false` to use a pull-down and trigger when the pin goes to 3.3V.
+Example with an HC-SR501 PIR sensor that starts the second video on motion:
+
+```ini
+[control]
+gpio_pin_map = "D26" : 1
+gpio_pin_mode = false
+```
+
+| HC-SR501 | Raspberry Pi |
+|---|---|
+| VCC | pin 2 (5V) |
+| GND | pin 39 (GND) |
+| OUT | pin 37 (GPIO26) |
+
+The HC-SR501 output is 3.3V, so it is safe for the GPIO. Set its time potentiometer (Tx) a little longer than
+the triggered video, otherwise a new trigger can restart the video before it ends.
+
+**Relay output.** Switches a relay (fog machine, humidifier, lights) together with the GPIO triggers:
+
+```ini
+relay_pin = D16
+relay_active_low = true
+relay_mode = follow
+relay_seconds = 10
+relay_max_seconds = 300
+```
+
+| Setting | Meaning |
+|---|---|
+| `relay_pin` | Blinka name of the pin driving the relay input. Empty disables the relay. |
+| `relay_active_low` | `true` for the common optocoupler relay boards (relay ON when the input is LOW). |
+| `relay_mode` | `timer`: ON for `relay_seconds` after each trigger. `follow`: ON while a mapped pin is active, OFF `relay_seconds` after it clears. |
+| `relay_seconds` | Timer length, or hold time after the sensor clears in follow mode. |
+| `relay_max_seconds` | Follow mode only: maximum continuous ON time. Afterwards the relay stays OFF until the sensor clears. |
+
+Wiring for a typical 5V optocoupler relay board, with the VCC/JD-VCC jumper removed so the GPIO side runs at 3.3V:
+
+| Relay board | Raspberry Pi |
+|---|---|
+| JD-VCC | pin 4 (5V, relay coil) |
+| VCC | pin 1 (3.3V, optocoupler) |
+| GND | pin 6 (GND) |
+| IN1 | pin 36 (GPIO16) |
+
+Switch mains appliances on the live wire through COM/NO only inside an insulated enclosure, or use a low-voltage
+appliance instead.
+
+Note: in the ini file, put comments on their own line. A comment after a value becomes part of the value.
 
 
 ## Troubleshooting:

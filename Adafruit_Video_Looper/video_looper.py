@@ -124,6 +124,8 @@ class VideoLooper:
             self._keyboard_thread = threading.Thread(target=self._handle_keyboard_shortcuts, daemon=True)
             self._keyboard_thread.start()
         
+        # True = pull-up / trigger on HIGH->LOW (default); False = pull-down / LOW->HIGH
+        self._gpio_active_low = self._config.getboolean('control', 'gpio_pin_mode', fallback=True)
         pinMapSetting = self._config.get('control', 'gpio_pin_map', raw=True)
         if pinMapSetting:
             try:
@@ -134,6 +136,36 @@ class VideoLooper:
                 self._print("gpio_pin_map setting is not valid and/or error with GPIO setup")
         else:
             self._pinMap = None
+
+        # Optional relay output (e.g. fog machine). Settings in [control]:
+        #   relay_pin = D16            (Blinka name, empty = disabled)
+        #   relay_active_low = true    (true for the common blue relay boards)
+        #   relay_mode = timer         timer:  ON for relay_seconds after each trigger
+        #                              follow: ON while a trigger pin is active, OFF
+        #                                      relay_seconds after it goes inactive
+        #   relay_seconds = 20
+        #   relay_max_seconds = 300    follow mode safety limit (then waits for the
+        #                              trigger pin to go inactive before re-arming)
+        self._relay = None
+        self._relay_timer = None
+        self._relay_mode = self._config.get('control', 'relay_mode', fallback='timer').strip().lower()
+        self._relay_max_seconds = self._config.getfloat('control', 'relay_max_seconds', fallback=300)
+        self._relay_on_since = None
+        self._relay_last_active = 0.0
+        self._relay_lockout = False
+        relay_pin = self._config.get('control', 'relay_pin', fallback='').strip()
+        if relay_pin:
+            try:
+                self._relay_active_low = self._config.getboolean('control', 'relay_active_low', fallback=True)
+                self._relay_seconds = self._config.getfloat('control', 'relay_seconds', fallback=20)
+                self._relay = digitalio.DigitalInOut(getattr(board, relay_pin))
+                # start OFF: active-low relay is off when the pin is HIGH
+                self._relay.switch_to_output(value=self._relay_active_low)
+                self._print(f"relay on {relay_pin}: mode={self._relay_mode}, active_low={self._relay_active_low}, "
+                            f"seconds={self._relay_seconds}, max_seconds={self._relay_max_seconds}")
+            except Exception as err:
+                self._relay = None
+                self._print(f"relay setup failed: {err}")
 
     def _print(self, message):
         """Print message to standard output if console output is enabled."""
@@ -474,17 +506,70 @@ class VideoLooper:
 
         for pin_name in self._pinMap.keys():
             self._pinMap[pin_name]["debouncer"].update()
-            if self._pinMap[pin_name]["debouncer"].fell:
+            _deb = self._pinMap[pin_name]["debouncer"]
+            if (_deb.fell if self._gpio_active_low else _deb.rose):
                 action = self._pinMap[pin_name]["action"]
                 self._print(f'pin {pin_name} triggered: {action}')
         
                 if action in ['K_ESCAPE', 'K_k', 'K_s', 'K_SPACE', 'K_p', 'K_b', 'K_o', 'K_i']:
                     pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=getattr(pygame, action, None)))
                 else:
+                    self._relay_pulse()
                     self._playlist.set_next(action)
                     self._player.stop(3)
                     self._playbackStopped = False
-    
+
+    def _relay_set(self, on):
+        if self._relay is not None:
+            self._relay.value = (not on) if self._relay_active_low else on
+
+    def _relay_off(self):
+        self._relay_set(False)
+        self._print("relay OFF")
+
+    def _relay_pulse(self):
+        """Switch the relay ON for relay_seconds; a new trigger restarts the timer."""
+        if self._relay is None or self._relay_mode != 'timer':
+            return
+        if self._relay_timer is not None:
+            self._relay_timer.cancel()
+        self._relay_set(True)
+        self._print(f"relay ON for {self._relay_seconds}s")
+        self._relay_timer = threading.Timer(self._relay_seconds, self._relay_off)
+        self._relay_timer.daemon = True
+        self._relay_timer.start()
+
+    def _relay_update(self):
+        """Follow mode: relay ON while a trigger pin is active, OFF relay_seconds after it clears."""
+        if self._relay is None or self._relay_mode != 'follow' or not self._pinMap:
+            return
+        now = time.monotonic()
+        active = False
+        for entry in self._pinMap.values():
+            v = entry["debouncer"].value
+            if (not v) if self._gpio_active_low else v:
+                active = True
+                break
+        if active:
+            self._relay_last_active = now
+
+        if self._relay_on_since is None:
+            if active and not self._relay_lockout:
+                self._relay_set(True)
+                self._relay_on_since = now
+                self._print(f"relay ON (presence; hold {self._relay_seconds}s, max {self._relay_max_seconds}s)")
+            elif not active:
+                self._relay_lockout = False
+        elif now - self._relay_on_since >= self._relay_max_seconds:
+            self._relay_set(False)
+            self._relay_on_since = None
+            self._relay_lockout = True
+            self._print("relay OFF (max time reached; re-arms when the sensor clears)")
+        elif not active and now - self._relay_last_active >= self._relay_seconds:
+            self._relay_set(False)
+            self._relay_on_since = None
+            self._print("relay OFF (no presence)")
+
     def _gpio_setup(self):
         if self._pinMap is None:
             return
@@ -493,7 +578,7 @@ class VideoLooper:
             pin_obj = getattr(board, pin_name)
             dio_obj = digitalio.DigitalInOut(pin_obj)
             dio_obj.direction = digitalio.Direction.INPUT
-            dio_obj.pull = digitalio.Pull.UP
+            dio_obj.pull = digitalio.Pull.UP if self._gpio_active_low else digitalio.Pull.DOWN
 
             debounced_pin = Debouncer(dio_obj)
             pin_map_entry = {
@@ -584,6 +669,7 @@ class VideoLooper:
 
             # process GPIO inputs
             self._handle_gpio_control()
+            self._relay_update()
             
             # Give the CPU some time to do other tasks. low values increase "responsiveness to changes" and reduce the pause between files
             # but increase CPU usage
@@ -606,6 +692,11 @@ class VideoLooper:
 
         if self._player is not None:
             self._player.stop()
+
+        if getattr(self, '_relay', None) is not None:
+            if self._relay_timer is not None:
+                self._relay_timer.cancel()
+            self._relay_set(False)
 
         if self._pinMap:
             # GPIO.cleanup()

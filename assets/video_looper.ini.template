@@ -125,28 +125,55 @@ keyboard_control = true
 keyboard_control_disabled_while_playback = false
 #keyboard_control_disabled_while_playback = true
 
-# This setting defines which Raspberry Pi GPIO pin (BOARD numbering!) will jump to which file in the playlist (first file has index 0)
+# This setting defines which Raspberry Pi GPIO pin will jump to which file in the playlist (first file has index 0)
+# Pins use Blinka board names, i.e. the BCM GPIO number with a "D" prefix: "D17" = GPIO17 = physical pin 11.
 # See: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio for info about the pin numbers
-# the pins are pulled high so you need to connect your switch to the selected pin and Ground (e.g. pin 9) - there is some debouncing done in software
-# The accepted settings are like this: "pinnumber" : videoindex or "pinnumber" : "filename" or "pinnumber" : "-1" or "pinnumber" : "+1"
+# by default the pins are pulled high so you need to connect your switch to the selected pin and Ground (e.g. pin 9) - there is some debouncing done in software
+# (see gpio_pin_mode below for sensors that drive the pin HIGH instead)
+# The accepted settings are like this: "pinname" : videoindex or "pinname" : "filename" or "pinname" : "-1" or "pinname" : "+1"
 # its also possible to send "keyboard commands" like shutdown or pause (see readme for available keyboard commands)
 # the format follows the pygame key list (https://www.pygame.org/docs/ref/key.html) see example below. "keyboard_control" needs to be enabled for this to work
 # to enable GPIO set a gpio_pin_map like in the example below or just enable all the example mappings.
 gpio_pin_map = 
-#gpio_pin_map = "11" : 1, "13": 4, "16": "+2", "18": "-1", "15": "video.mp4", "19": "K_SPACE", "21": "K_p"
-# Example:
-# Pin 11 starts the 2nd video in the playlist, 
-# pin 13 starts the 5th video, 
-# pin 16 jumps 2 videos ahead,
-# pin 18 jumps one video back,
-# pin 15 plays a file with name "video.mp4" (if it exists),
-# pin 19 sends the "spacebar" to the looper, pausing the current video
-# pin 21 sends the "p" key and thus triggers the shutdown of the Raspberry Pi
+#gpio_pin_map = "D17" : 1, "D27": 4, "D23": "+2", "D24": "-1", "D22": "video.mp4", "D10": "K_SPACE", "D9": "K_p"
+# Example (physical pin numbers in brackets):
+# D17 (pin 11) starts the 2nd video in the playlist,
+# D27 (pin 13) starts the 5th video,
+# D23 (pin 16) jumps 2 videos ahead,
+# D24 (pin 18) jumps one video back,
+# D22 (pin 15) plays a file with name "video.mp4" (if it exists),
+# D10 (pin 19) sends the "spacebar" to the looper, pausing the current video
+# D9  (pin 21) sends the "p" key and thus triggers the shutdown of the Raspberry Pi
 
 # you can disable the gpio control while a video is playing - in case of a looping video gpio control will never work
 # is meant to be used with one_shot_playback
 gpio_control_disabled_while_playback = false
 #gpio_control_disabled_while_playback = true
+
+# Trigger polarity for all mapped GPIO pins:
+# true  (default) = internal pull-up, trigger when the pin is connected to Ground (buttons, switches)
+# false           = internal pull-down, trigger when the pin goes to 3.3V
+#                   (active-high sensors, e.g. an HC-SR501 PIR wired directly to the pin)
+gpio_pin_mode = true
+#gpio_pin_mode = false
+
+# Optional relay output, e.g. to switch a fog machine or humidifier together with a GPIO trigger.
+# relay_pin: Blinka pin name of the relay input, e.g. D16 (GPIO16, physical pin 36). Empty = disabled.
+# relay_active_low: true for the common optocoupler relay boards (relay ON when the input is LOW)
+# relay_mode:
+#   timer  = relay ON for relay_seconds after each GPIO trigger (a new trigger restarts the time)
+#   follow = relay ON while a mapped GPIO pin is active (e.g. while a PIR detects people),
+#            OFF relay_seconds after it clears
+# relay_max_seconds: follow mode only - maximum continuous ON time; afterwards the relay stays OFF
+#   until the trigger pin clears (protects against constant traffic or a stuck sensor)
+# Note: do not put comments on the same line as a value - they become part of the value.
+relay_pin =
+#relay_pin = D16
+relay_active_low = true
+relay_mode = timer
+#relay_mode = follow
+relay_seconds = 20
+relay_max_seconds = 300
 
 # USB drive file reader configuration follows.
 [usb_drive]
